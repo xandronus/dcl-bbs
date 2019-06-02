@@ -1,0 +1,2 @@
+# dclirc
+Decentraland IRC client
