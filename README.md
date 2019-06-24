@@ -1,2 +1,2 @@
-# dclirc
-Decentraland IRC client
+# dcl-bbs
+Decentraland Bulletin Board System
