@@ -1,3 +1,37 @@
+function setNotes(current: string, newNotes: string) {
+  if (newNotes == current) {
+    return
+  }
+  current = newNotes
+  textShape.value = current
+}
+function fetchNotes(notes: string) {
+  let callUrl:string = 'https://irc-services.xandronus.now.sh/?command=getmessages&after=2019-06-21';
+  let newNotes: string = notes
+  executeTask(async () => {
+    try {
+      
+      log('getting new notes')
+      let response = await fetch(callUrl,{
+          headers: {
+            "Content-Type": "application/json",
+            "api_key":"ed62a076-6e98-40f4-941c-fbabc3ccfcb2"
+          }
+        })
+      let json = await response.json()
+      log('json=', json)
+
+      newNotes += 'AnotherLine\n'
+      setNotes(notes, newNotes)
+      return newNotes;
+    } catch {
+      log('failed to reach URL', error)
+    }
+  })
+  return null;
+}
+
+
 /// --- Set up a system ---
 class UpdateBulletinBoard implements ISystem {
   board: Entity 
@@ -11,6 +45,7 @@ class UpdateBulletinBoard implements ISystem {
 
 // TODO: replace with real data from cloud service
 var notes = 'Click on board to toggle note input!\nThis is line 2\nThis is line 3\nThis is line4\n'
+fetchNotes(notes);
 
 const planeEntity = new Entity()
 
