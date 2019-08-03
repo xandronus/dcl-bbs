@@ -1,13 +1,31 @@
-function setNotes(current: string, newNotes: string) {
-  if (newNotes == current) {
-    return
-  }
-  current = newNotes
-  textShape.value = current
+import { getUserAccount } from '@decentraland/EthereumController'
+
+executeTask(async () => {
+    
+  })
+
+function updateTextShape(newNotes: Array<string>) {
+  textShape.value = newNotes.join('\n')
 }
-function fetchNotes(notes: string) {
+
+function fetchAvatar(user, notes: Array<string>) {
+  executeTask(async() => {
+      // Get Ethereum Wallet
+      try {
+        // TODO: Get avatar name from somewhere
+        user.nick = 'guest'
+        user.address = await getUserAccount()
+        notes.push('* Welcome ' + user.nick + ' ( ' + user.address + ' )');
+        updateTextShape(notes)
+        log(user.address)
+      } catch (error) {
+        log(error.toString())
+      }
+    })  
+}
+
+function fetchNotes(notes: Array<string>) {
   let callUrl:string = 'https://irc-services.xandronus.now.sh/?command=getmessages&after=2019-06-21';
-  let newNotes: string = notes
   executeTask(async () => {
     try {
       
@@ -20,10 +38,13 @@ function fetchNotes(notes: string) {
         })
       let json = await response.json()
       log('json=', json)
-
-      newNotes += 'AnotherLine\n'
-      setNotes(notes, newNotes)
-      return newNotes;
+      json.message.forEach(item => {
+          var ident = '< ' + item.postedby.nick + ' >';
+          var messageDate = new Date(item.timestamp).toLocaleString();
+          var text = ident.padEnd(15) + messageDate.padEnd(25) + item.content[0].text
+          notes.push(text)          
+        });
+      updateTextShape(notes)
     } catch {
       log('failed to reach URL', error)
     }
@@ -43,8 +64,12 @@ class UpdateBulletinBoard implements ISystem {
   }
 }
 
-// TODO: replace with real data from cloud service
-var notes = 'Click on board to toggle note input!\nThis is line 2\nThis is line 3\nThis is line4\n'
+// ------------------------------------------------
+// Startup
+// ------------------------------------------------
+var notes: string[] = ["----------------- DCL BBS ------------------\nClick on board to toggle note input\n-------------------------------------------------\n"];
+var user = {nick: '', address: ''}
+fetchAvatar(user, notes)
 fetchNotes(notes);
 
 const planeEntity = new Entity()
@@ -75,7 +100,7 @@ engine.addEntity(planeEntity)
 const textEntity = new Entity()
 const billboard = new Billboard()
 textEntity.addComponent(billboard)
-const textShape = new TextShape(notes)
+const textShape = new TextShape()
 textShape.fontSize = 1
 textShape.color = Color3.Blue()
 textShape.hTextAlign = 'left'
@@ -108,8 +133,11 @@ textInput.positionY = '25px'
 textInput.isPointerBlocker = true
 
 textInput.onTextSubmit = new OnTextSubmit(x => {
-  notes += x.text + '\n'
-  textShape.value = notes
+  var ident = '< ' + user.nick + ' >';
+  var messageDate = new Date().toLocaleString()
+  notes.push(ident.padEnd(15) + messageDate.padEnd(25) + x.text)
+  updateTextShape(notes)
+//  textShape.value += x.text + '\n'
   // const text = new UIText(textInput)
   // text.value = x.text
   // text.width = '100%'
