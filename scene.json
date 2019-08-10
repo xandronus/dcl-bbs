@@ -14,7 +14,7 @@
     ],
     "base": "0, 0"
   },
-  "communications": {
+    "communications": {
     "type": "webrtc",
     "signalling": "https://signalling-01.decentraland.org"
   },
