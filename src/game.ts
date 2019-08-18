@@ -40,7 +40,7 @@ function fetchAvatar(user, notes: Array<string>) {
     })  
 }
 
-function fetchNotes(notes: Array<string>, sinceDateTime: Date) {
+function fetchNotes(notes: Array<string>, sinceDateTime: Date){
   executeTask(async () => {
     try {
       let callUrl:string = 'https://irc-services.xandronus.now.sh/?command=getmessages&after=' + sinceDateTime.toISOString();           
@@ -52,7 +52,8 @@ function fetchNotes(notes: Array<string>, sinceDateTime: Date) {
           }
         })
       let json = await response.json()
-      sinceDateTime = new Date(Date.now())
+      sinceDateTime.setTime(Date.now())
+      log('sinceDateTime=', sinceDateTime)
       log('json=', json)      
       json.message.forEach(item => {
           var ident = '< ' + item.postedby.nick + ' >';
@@ -60,6 +61,7 @@ function fetchNotes(notes: Array<string>, sinceDateTime: Date) {
           var text = ident.padEnd(15) + messageDate.padEnd(25) + item.content[0].text
           notes.push(text)          
         });
+      // We need to do something smart here to ensure we only have 28 most recent messages + header, that's all that fits
       updateTextShape(notes)
     } catch {
       log('failed to reach URL', error)
@@ -181,6 +183,7 @@ textInput.isPointerBlocker = true
 
 textInput.onTextSubmit = new OnTextSubmit(x => {
   pushNote(user, x.text, notes, lastFetch)
+  log('lastFetch=', lastFetch)
   //var ident = '< ' + user.nick + ' >';
   //var messageDate = new Date().toLocaleString()
   //notes.push(ident.padEnd(15) + messageDate.padEnd(25) + x.text)
